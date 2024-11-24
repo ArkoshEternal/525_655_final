@@ -4,7 +4,7 @@ from scipy.io.wavfile import write
 
 # Constants
 SAMPLE_RATE = 44100  # Standard sample rate (44.1 kHz)
-DURATION = 3.0       # Total duration of the chord (3 seconds)
+DURATION = 30.0      # Total duration of the chord (30 seconds)
 
 # Chord frequencies (E Major)
 FREQS = [82.41, 123.47, 164.81, 207.65, 246.94, 329.63]  # E2, B2, E3, G#3, B3, E4
@@ -36,11 +36,11 @@ strummed_chord = sum(waveforms)
 # Normalize to prevent clipping
 strummed_chord = strummed_chord / np.max(np.abs(strummed_chord))
 
-# Apply an ADSR envelope to the chord
-attack = np.linspace(0, 1, int(SAMPLE_RATE * 0.1))  # Attack (10% of duration)
-decay = np.linspace(1, 0.8, int(SAMPLE_RATE * 0.1)) # Decay (10% of duration)
-sustain = np.linspace(0.8, 0.8, int(SAMPLE_RATE * 0.7))  # Sustain (70% of duration)
-release = np.linspace(0.8, 0, int(SAMPLE_RATE * 0.1))    # Release (10% of duration)
+# Apply an ADSR envelope for 30 seconds
+attack = np.linspace(0, 1, int(SAMPLE_RATE * 0.1))  # Attack phase (0.1 seconds)
+decay = np.linspace(1, 0.9, int(SAMPLE_RATE * 0.2))  # Decay phase (0.2 seconds)
+sustain = np.linspace(0.9, 0, int(SAMPLE_RATE * 29.5))  # Sustain phase (29.5 seconds)
+release = np.linspace(0.9, 0, int(SAMPLE_RATE * 0.2))     # Release phase (0.2 seconds)
 envelope = np.concatenate((attack, decay, sustain, release))
 
 # Ensure the envelope matches the waveform length
@@ -50,5 +50,5 @@ envelope = np.pad(envelope, (0, len(strummed_chord) - len(envelope)), 'constant'
 strummed_chord = strummed_chord * envelope
 
 # Save to a WAV file
-write("strummed_e_major_chord.wav", SAMPLE_RATE, (strummed_chord * 32767).astype(np.int16))
+write("sustained_30s_strummed_e_major_chord.wav", SAMPLE_RATE, (strummed_chord * 32767).astype(np.int16))
 
