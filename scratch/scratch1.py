@@ -5,7 +5,7 @@ from scipy.io.wavfile import write
 # Constants
 SAMPLE_RATE = 44100  # Standard sample rate for audio (44.1 kHz)
 DURATION = 2.0       # Duration of the sound in seconds
-FREQ = 82.41         # Frequency of the low E string (Hz)
+FREQ = 196         # Frequency of the low E string (Hz)
 
 # Time axis
 t = np.linspace(0, DURATION, int(SAMPLE_RATE * DURATION), endpoint=False)
