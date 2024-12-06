@@ -1,4 +1,5 @@
 import json
+import os
 import argparse
 import numpy as np
 from pydub.generators import Sine
@@ -7,6 +8,7 @@ from sshkeyboard import listen_keyboard, stop_listening
 from threading import Thread
 import sys
 import time
+import pickle
 from instruments.bass import generate_bass_dict
 from instruments.drum import generate_drum_dict
 from instruments.guitar import generate_guitar_dict
@@ -22,28 +24,50 @@ is_playing = False
 def create_wav(script_path):
     return
 
+# configure default key mappings
+def configure_default_mappings():
+    default_keys = ['a', 's', 'd', 'f', 'g', 'h']  # List of default keys
+    for instrument in sounds.keys():
+        mappings[instrument] = {}
+        notes = list(sounds[instrument].keys())
+        for i, note in enumerate(notes[:6]):  # Map only the first 6 notes
+            mappings[instrument][default_keys[i]] = note
+
 # Load configuration from JSON
 def load_config(file_path):
-    print("Generating sounds from configuration file...")
-    print("WARNING: This could take a very long time if the file is large.")
-    # Parse JSON 
-    with open(file_path, "r") as file:
-        config = json.load(file)
-    # Generate Sounds We'll Be Using
-    for instrument in config.items():
-        match instrument[0]:
-            case "piano": 
-                sounds["piano"] = generate_piano_dict(config["piano"])
-                instruments.append("piano")
-            case "guitar":
-                sounds["guitar"] = generate_guitar_dict(config["guitar"])
-                instruments.append("guitar")
-            case "bass":
-                sounds["bass"] = generate_bass_dict(config["bass"])
-                instruments.append("bass")
-            case "drum":
-                sounds["drum"] = generate_drum_dict(config["drum"])
-                instruments.append("drum")
+    cache_file = "sounds_cache.pkl"
+
+    if os.path.exists(cache_file):
+        print("Cached sounds found. Loading from cache.")
+        with open(cache_file, "rb") as file:
+            sounds = pickle.load(file)
+    else:
+        print("No cached sounds found. Generating sounds from config...")
+        print("This might take a while")
+        # Parse JSON 
+        with open(file_path, "r") as file:
+            config = json.load(file)
+        # Generate Sounds We'll Be Using
+        for instrument in config.items():
+            match instrument[0]:
+                case "piano": 
+                    sounds["piano"] = generate_piano_dict(config["piano"])
+                    instruments.append("piano")
+                case "guitar":
+                    sounds["guitar"] = generate_guitar_dict(config["guitar"])
+                    instruments.append("guitar")
+                case "bass":
+                    sounds["bass"] = generate_bass_dict(config["bass"])
+                    instruments.append("bass")
+                case "drum":
+                    sounds["drum"] = generate_drum_dict(config["drum"])
+                    instruments.append("drum")
+        # Cache the sounds
+        with open(cache_file, "wb") as file:
+            pickle.dump(sounds, file)
+        
+        # Set Up Default Key Mappings
+        configure_default_mappings()
         
 # Play a sound using pygame
 def play_sound(freq, duration=1.0, volume=0.5):
