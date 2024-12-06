@@ -11,6 +11,10 @@ from instruments.bass import generate_bass_dict
 from instruments.drum import generate_drum_dict
 from instruments.guitar import generate_guitar_dict
 from instruments.piano import generate_piano_dict
+from pynput import keyboard
+
+# sample call: py -m open_synth test_config.json --script test_script.json
+# run config arguments: test_config.json --script test_script.json
 
 # Global variables
 instruments = [] 
@@ -20,6 +24,30 @@ is_playing = False
 
 # TODO: Create a WAV file from a script
 def create_wav(script_path):
+
+    # Import JSON
+    print("Reading Script")
+    file = open(script_path, "r")
+    script = json.load(file)
+
+    # Debug Prints
+    print ("    Song SongDuration_s: " + str(script["SongDuration_s"]))
+    print ("    SongFreq_Hz: " + str(script["SongFreq_Hz"]))
+    print ("    Sounds: ")
+
+    for index, sound in enumerate(script["Sounds"]):
+        print("    Sound " + str(index))
+        print("        Instrument: " + sound["Instrument"])
+        print("        SoundName: " + sound["SoundName"])
+        print("        NoteFreq_Hz: " + str(sound["NoteFreq_Hz"]))
+        print("        Iterations: " + str(sound["Iterations"]))
+
+    # Build Timeline of Sounds    
+    
+    # Stream sounds to .wav
+
+    # Done
+    print("Loaded Script")
     return
 
 # Load configuration from JSON
