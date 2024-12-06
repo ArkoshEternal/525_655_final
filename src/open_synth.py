@@ -139,7 +139,7 @@ def main_menu():
             play_mode()
         elif choice == "q":
             print("See You Space Cowboy...")
-            break
+            exit()
         elif choice == "h":
             print("m: Key mapping mode")
             print("i: Instrument select mode")
