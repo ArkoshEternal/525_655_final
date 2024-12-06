@@ -13,7 +13,7 @@ from instruments.bass import generate_bass_dict
 from instruments.drum import generate_drum_dict
 from instruments.guitar import generate_guitar_dict
 from instruments.piano import generate_piano_dict
-import io
+from ascii_animator import Animator, Speed, AsciiAnimation
 # sample call: py -m open_synth test_config.json --script test_script.json
 # run config arguments: test_config.json --script test_script.json
 
@@ -24,6 +24,11 @@ sounds = {}
 is_playing = False
 cur_instrument = None
 
+def see_you_space_cowboy():
+    speed = Speed.VERY_SLOW
+    Animator(animation=AsciiAnimation('./random/see-you.gif'), show_axis=False, speed=speed, max_loops=1, first_cycle_sleep=False)
+    print("See You Space Cowboy")
+    exit()
 # TODO: Create a WAV file from a script
 def create_wav(script_path):
     return
@@ -53,6 +58,7 @@ def create_wav(script_path):
 #    print("Loaded Script")
 #    return
 
+
 # Load configuration from JSON
 def load_config(file_path):
     global mappings, instruments, sounds, cur_instrument
@@ -71,12 +77,12 @@ def load_config(file_path):
         # Generate Sounds We'll Be Using
         for instrument in config.items():
             match instrument[0]:
-                # case "piano": 
-                #     sounds["piano"] = generate_piano_dict(config["piano"])
-                # case "guitar":
-                #     sounds["guitar"] = generate_guitar_dict(config["guitar"])
-                # case "bass":
-                #     sounds["bass"] = generate_bass_dict(config["bass"])
+                case "piano": 
+                    sounds["piano"] = generate_piano_dict(config["piano"])
+                case "guitar":
+                    sounds["guitar"] = generate_guitar_dict(config["guitar"])
+                case "bass":
+                    sounds["bass"] = generate_bass_dict(config["bass"])
                 case "drum":
                     sounds["drum"] = generate_drum_dict(config["drum"])
         # Cache the sounds
@@ -138,8 +144,7 @@ def main_menu():
         elif choice == "p":
             play_mode()
         elif choice == "q":
-            print("See You Space Cowboy...")
-            exit()
+            see_you_space_cowboy()
         elif choice == "h":
             print("m: Key mapping mode")
             print("i: Instrument select mode")
