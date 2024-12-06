@@ -1,10 +1,16 @@
-# File which implements the generation of bass notes for open_synth 
 import numpy as np
 from scipy.io.wavfile import write
 
-# function which generates a bass note for a given fundamental frequency
-def generate_bass_note(frequency, duration=1.0, sample_rate=44100):
-
+def generate_bass_note(frequency, duration=2.0, sample_rate=44100, file_name="bass_note.wav"):
+    """
+    Generate a bass guitar note and save it as a .wav file.
+    
+    Parameters:
+        frequency (float): Fundamental frequency of the bass note in Hz.
+        duration (float): Duration of the note in seconds. Default is 2.0 seconds.
+        sample_rate (int): Sampling rate in Hz. Default is 44100 Hz.
+        file_name (str): Name of the output .wav file. Default is "bass_note.wav".
+    """
     # Time axis
     t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
 
@@ -38,12 +44,12 @@ def generate_bass_note(frequency, duration=1.0, sample_rate=44100):
     # Normalize to avoid clipping
     waveform = waveform / np.max(np.abs(waveform))
 
-    return waveform
+    # Convert to 16-bit PCM format
+    waveform = np.int16(waveform * 32767)
 
-# function which returns the bass note for a given fundamental frequency
-def generate_bass_dict(mydict):
-    return_dict = {}
-    # Generate the chords and return them as key value pairs 
-    for key, value in mydict.items(): 
-        return_dict[key] = generate_bass_note(value)
-    return return_dict
+    # Write to a wav file
+    write(file_name, sample_rate, waveform)
+    print(f"Generated bass note saved as '{file_name}'")
+
+# Example usage
+generate_bass_note(frequency=98.00)  # E1, fundamental frequency of a low E string on a bass guitar

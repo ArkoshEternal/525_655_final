@@ -13,8 +13,7 @@ from instruments.bass import generate_bass_dict
 from instruments.drum import generate_drum_dict
 from instruments.guitar import generate_guitar_dict
 from instruments.piano import generate_piano_dict
-from pynput import keyboard
-
+import io
 # sample call: py -m open_synth test_config.json --script test_script.json
 # run config arguments: test_config.json --script test_script.json
 
@@ -23,46 +22,40 @@ instruments = []
 mappings = {}
 sounds = {}
 is_playing = False
+cur_instrument = None
 
 # TODO: Create a WAV file from a script
 def create_wav(script_path):
-
-    # Import JSON
-    print("Reading Script")
-    file = open(script_path, "r")
-    script = json.load(file)
-
-    # Debug Prints
-    print ("    Song SongDuration_s: " + str(script["SongDuration_s"]))
-    print ("    SongFreq_Hz: " + str(script["SongFreq_Hz"]))
-    print ("    Sounds: ")
-
-    for index, sound in enumerate(script["Sounds"]):
-        print("    Sound " + str(index))
-        print("        Instrument: " + sound["Instrument"])
-        print("        SoundName: " + sound["SoundName"])
-        print("        NoteFreq_Hz: " + str(sound["NoteFreq_Hz"]))
-        print("        Iterations: " + str(sound["Iterations"]))
-
-    # Build Timeline of Sounds    
-    
-    # Stream sounds to .wav
-
-    # Done
-    print("Loaded Script")
     return
 
-# configure default key mappings
-def configure_default_mappings():
-    default_keys = ['a', 's', 'd', 'f', 'g', 'h']  # List of default keys
-    for instrument in sounds.keys():
-        mappings[instrument] = {}
-        notes = list(sounds[instrument].keys())
-        for i, note in enumerate(notes[:6]):  # Map only the first 6 notes
-            mappings[instrument][default_keys[i]] = note
+#    # Import JSON
+#    print("Reading Script")
+#    file = open(script_path, "r")
+#    script = json.load(file)
+#
+#    # Debug Prints
+#    print ("    Song SongDuration_s: " + str(script["SongDuration_s"]))
+#    print ("    SongFreq_Hz: " + str(script["SongFreq_Hz"]))
+#    print ("    Sounds: ")
+#
+#    for index, sound in enumerate(script["Sounds"]):
+#        print("    Sound " + str(index))
+#        print("        Instrument: " + sound["Instrument"])
+#        print("        SoundName: " + sound["SoundName"])
+#        print("        NoteFreq_Hz: " + str(sound["NoteFreq_Hz"]))
+#        print("        Iterations: " + str(sound["Iterations"]))
+#
+#    # Build Timeline of Sounds    
+#    
+#    # Stream sounds to .wav
+#
+#    # Done
+#    print("Loaded Script")
+#    return
 
 # Load configuration from JSON
 def load_config(file_path):
+    global mappings, instruments, sounds, cur_instrument
     cache_file = "sounds_cache.pkl"
 
     if os.path.exists(cache_file):
@@ -78,34 +71,29 @@ def load_config(file_path):
         # Generate Sounds We'll Be Using
         for instrument in config.items():
             match instrument[0]:
-                case "piano": 
-                    sounds["piano"] = generate_piano_dict(config["piano"])
-                    instruments.append("piano")
-                case "guitar":
-                    sounds["guitar"] = generate_guitar_dict(config["guitar"])
-                    instruments.append("guitar")
-                case "bass":
-                    sounds["bass"] = generate_bass_dict(config["bass"])
-                    instruments.append("bass")
+                # case "piano": 
+                #     sounds["piano"] = generate_piano_dict(config["piano"])
+                # case "guitar":
+                #     sounds["guitar"] = generate_guitar_dict(config["guitar"])
+                # case "bass":
+                #     sounds["bass"] = generate_bass_dict(config["bass"])
                 case "drum":
                     sounds["drum"] = generate_drum_dict(config["drum"])
-                    instruments.append("drum")
         # Cache the sounds
         with open(cache_file, "wb") as file:
             pickle.dump(sounds, file)
-        
-        # Set Up Default Key Mappings
-        configure_default_mappings()
-        
-# Play a sound using pygame
-def play_sound(freq, duration=1.0, volume=0.5):
-    sound = Sine(freq).to_audio_segment(duration=duration*1000, volume=volume)
-    raw_data = np.frombuffer(sound.raw_data, dtype=np.int16)
-    pygame.mixer.init(frequency=sound.frame_rate, size=-16, channels=1)
-    pygame.mixer.Sound(buffer=raw_data.tobytes()).play()
+    
+    # Populate Instruments
+    instruments = list(sounds.keys())
+    cur_instrument = instruments[0]
+
+    
+    # Set up default mappings
+    mappings = {instrument: {} for instrument in instruments}
 
 # Map keys to playbacks
 def configure_key_mapping():
+    global mappings, instruments, sounds
     print("Press keys to map them to instrument sounds. Type 'exit' to stop. Press 'Enter' to skip.")
     for instrument, notes in sounds.items():
         print(f"\nConfiguring {instrument}:") 
@@ -117,28 +105,22 @@ def configure_key_mapping():
             mappings[instrument][key] = note
     print("Configuration complete!")
 
+# Callback function for playing notes
+def play_note(key):
+    global mappings, sounds, cur_instrument
+    if key in mappings[cur_instrument]:
+        note = sounds[cur_instrument][mappings[cur_instrument][key]]
+        scaled_sound = np.int16(note/np.max(np.abs(note)) * 32767)
+        pygame.mixer.Sound(buffer=scaled_sound.tobytes()).play()
+
 # Keyboard listener for play mode
 def play_mode():
-    def on_press(key):
-        try:
-            key_char = key.char.lower()
-            instrument = mappings["instrument"]
-            if key_char in mappings[instrument]:
-                note = mappings[instrument][key_char]
-                if instrument == "keyboard":
-                    play_sound(sounds[instrument][note])
-                elif instrument in ["guitar", "bass"]:
-                    for freq in sounds[instrument][note]:
-                        Thread(target=play_sound, args=(freq, 0.5)).start()
-                elif instrument == "drum":
-                    print(f"Playing drum sound: {note}")
-        except AttributeError:
-            pass
-
-    listener = keyboard.Listener(on_press=on_press)
-    listener.start()
-    print("Play mode activated! Use the mapped keys to play sounds. Press 'Ctrl+C' to exit.")
-    listener.join()
+    global is_playing, cur_instrument
+    print("Entering Play Mode. You're currently playing:", cur_instrument)
+    pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
+    listen_keyboard(on_press=play_note)
+    pygame.mixer.quit()
+    main_menu() # return to main menu after stopping the listener
 
 def main_menu():
     while True:
