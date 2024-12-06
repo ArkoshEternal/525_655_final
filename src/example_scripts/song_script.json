@@ -1,0 +1,62 @@
+{
+    "song_duration_s": 20,
+    "sample_rate": 44100,
+    "sounds": [
+        {
+            "instrument": "piano",
+            "sound_name": "C4",
+            "start_time": 0
+        },
+        {
+            "instrument": "guitar",
+            "sound_name": "EMJ",
+            "start_time": 0
+        },
+        {
+            "instrument": "bass",
+            "sound_name": "A0",
+            "start_time": 2
+        },
+        {
+            "instrument": "drum",
+            "sound_name": "kick",
+            "start_time": 2
+        },
+        {
+            "instrument": "piano",
+            "sound_name": "G4",
+            "start_time": 4
+        },
+        {
+            "instrument": "guitar",
+            "sound_name": "CMJ",
+            "start_time": 4
+        },
+        {
+            "instrument": "bass",
+            "sound_name": "D0",
+            "start_time": 6
+        },
+        {
+            "instrument": "drum",
+            "sound_name": "snare",
+            "start_time": 6
+
+        },
+        {
+            "instrument": "piano",
+            "sound_name": "E5",
+            "start_time": 8
+        },
+        {
+            "instrument": "guitar",
+            "sound_name": "AMJ",
+            "start_time": 8
+        },
+        {
+            "instrument": "bass",
+            "sound_name": "G1",
+            "start_time": 10
+        }
+    ]
+}

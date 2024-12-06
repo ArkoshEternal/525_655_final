@@ -2,18 +2,18 @@ import json
 import os
 import argparse
 import numpy as np
-from pydub.generators import Sine
 import pygame
-from sshkeyboard import listen_keyboard, stop_listening
-from threading import Thread
 import sys
 import time
 import pickle
+from scipy.io.wavfile import write
+from sshkeyboard import listen_keyboard
 from instruments.bass import generate_bass_dict
 from instruments.drum import generate_drum_dict
 from instruments.guitar import generate_guitar_dict
 from instruments.piano import generate_piano_dict
 from ascii_animator import Animator, Speed, AsciiAnimation
+
 # sample call: py -m open_synth test_config.json --script test_script.json
 # run config arguments: test_config.json --script test_script.json
 
@@ -30,35 +30,42 @@ def see_you_space_cowboy():
     Animator(animation=AsciiAnimation('./random/see-you.gif'), show_axis=False, speed=speed, max_loops=1, first_cycle_sleep=False)
     print("\n\nSee You Space Cowboy")
     exit()
-# TODO: Create a WAV file from a script
+
 def create_wav(script_path):
-    return
+    global sounds
+    with open(script_path, "r") as file:
+        script = json.load(file)
+    song_duration = script["song_duration_s"]
+    sample_rate = script["sample_rate"]
+    total_len = int(song_duration * sample_rate * 5)
+    song = np.zeros(total_len)
 
-#    # Import JSON
-#    print("Reading Script")
-#    file = open(script_path, "r")
-#    script = json.load(file)
-#
-#    # Debug Prints
-#    print ("    Song SongDuration_s: " + str(script["SongDuration_s"]))
-#    print ("    SongFreq_Hz: " + str(script["SongFreq_Hz"]))
-#    print ("    Sounds: ")
-#
-#    for index, sound in enumerate(script["Sounds"]):
-#        print("    Sound " + str(index))
-#        print("        Instrument: " + sound["Instrument"])
-#        print("        SoundName: " + sound["SoundName"])
-#        print("        NoteFreq_Hz: " + str(sound["NoteFreq_Hz"]))
-#        print("        Iterations: " + str(sound["Iterations"]))
-#
-#    # Build Timeline of Sounds    
-#    
-#    # Stream sounds to .wav
-#
-#    # Done
-#    print("Loaded Script")
-#    return
+    for sound in script["sounds"]: 
+        instrument = sound["instrument"]
+        sound_name = sound["sound_name"]
+        start_time = sound["start_time"]
 
+        if instrument not in sounds:
+            print(f"Error: Instrument {instrument} not found in configuration")
+            return
+        
+        if sound_name not in sounds[instrument]:
+            print(f"Error: Sound {sound_name} not found in configuration")
+            return
+        
+        sound_data = sounds[instrument][sound_name]
+        sound_len = len(sound_data)
+        start_idx = int(start_time * sample_rate)
+        end_idx = start_idx + sound_len
+        if end_idx > total_len:
+            print(f"Error: Sound {sound_name} starts after the song ends")
+            return
+        song[start_idx:end_idx] += sound_data
+
+    # truncate song total_len
+    song = song[:total_len]
+    scaled_song = np.int16(song/np.max(np.abs(song)) * 32767)
+    write("output.wav", sample_rate, scaled_song)
 
 # Load configuration from JSON
 def load_config(file_path):
@@ -208,6 +215,7 @@ def main():
     if args.script:
         # start in script mode
         create_wav(args.script)
+        see_you_space_cowboy()
     # Else, load default key mappings and start the main menu
     else:
         # Set up escape as callback hotkey 
