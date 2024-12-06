@@ -23,11 +23,12 @@ mappings = {}
 sounds = {}
 is_playing = False
 cur_instrument = None
+channels = []
 
 def see_you_space_cowboy():
     speed = Speed.VERY_SLOW
     Animator(animation=AsciiAnimation('./random/see-you.gif'), show_axis=False, speed=speed, max_loops=1, first_cycle_sleep=False)
-    print("See You Space Cowboy")
+    print("\n\nSee You Space Cowboy")
     exit()
 # TODO: Create a WAV file from a script
 def create_wav(script_path):
@@ -113,22 +114,29 @@ def configure_key_mapping():
 
 # Callback function for playing notes
 def play_note(key):
-    global mappings, sounds, cur_instrument
+    global mappings, sounds, cur_instrument, channels
     if key in mappings[cur_instrument]:
         note = sounds[cur_instrument][mappings[cur_instrument][key]]
         scaled_sound = np.int16(note/np.max(np.abs(note)) * 32767)
-        pygame.mixer.Sound(buffer=scaled_sound.tobytes()).play()
+        sound = pygame.mixer.Sound(buffer=scaled_sound.tobytes())
+        for channel in channels:
+            if not channel.get_busy():
+                channel.play(sound)
+                break
 
 # Keyboard listener for play mode
 def play_mode():
-    global is_playing, cur_instrument
+    global is_playing, cur_instrument, channels
     print("Entering Play Mode. You're currently playing:", cur_instrument)
-    pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
+    pygame.mixer.init(frequency=44100, size=-16, channels=1, buffer=512)
+    pygame.mixer.set_num_channels(16)
+    channels = [pygame.mixer.Channel(i) for i in range(pygame.mixer.get_num_channels())]
     listen_keyboard(on_press=play_note)
     pygame.mixer.quit()
     main_menu() # return to main menu after stopping the listener
 
 def main_menu():
+    global cur_instrument
     while True:
         choice = input(":").strip()
         if choice == "m":
@@ -137,7 +145,7 @@ def main_menu():
             print("Available instruments:", list(sounds.keys()))
             instrument = input("Enter instrument name: ").strip().lower()
             if instrument in sounds:
-                mappings["instrument"] = instrument
+                cur_instrument = instrument
                 print(f"Switched to instrument: {instrument}")
             else:
                 print("Invalid instrument name.")
@@ -182,7 +190,7 @@ Welcome to Open Synthesizer! Lets make some music!
             time.sleep(0.005)  # Adjust the delay for each character
         sys.stdout.write('\n')
         sys.stdout.flush()
-        time.sleep(0.5)  # Adjust the delay between lines
+        time.sleep(0.1)  # Adjust the delay between lines
 
 def wait_esc(key):
     time.sleep(0.1)
