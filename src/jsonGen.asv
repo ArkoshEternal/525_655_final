@@ -1,0 +1,39 @@
+clear
+close all
+
+sounds() = struct('instrument',"samp",...
+    'SoundName' , "smp", ... % Sound Name - check if exists
+    'NoteFreq_Hz'  , 0    , ...   % Note Freq - must be divisor of Song Freq
+    'Iterations', 0   ...   % Number of times to play this note/chord
+    );
+
+ix = 1;
+sounds(ix).instrument  = "piano";
+sounds(ix).SoundName   = "GMJ";
+sounds(ix).NoteFreq_Hz = ix5;
+sounds(ix).Iterations  = 10;
+ix = ix+1;
+
+sounds(ix).instrument  = "Guitar";
+sounds(ix).SoundName   = "GMJ";
+sounds(ix).NoteFreq_Hz = ix5;
+sounds(ix).Iterations  = 15;
+ix = ix+1;
+
+sounds(ix).instrument  = "Guitar";
+sounds(ix).SoundName   = "GMJ";
+sounds(ix).NoteFreq_Hz = ix5;
+sounds(ix).Iterations  = 20;
+ix = ix+1;
+
+sounds(ix).instrument  = "Guitar";
+sounds(ix).SoundName   = "GMJ";
+sounds(ix).NoteFreq_Hz = ix5;
+sounds(ix).Iterations  = 30;
+ix = ix+1;
+
+
+top = struct('SongFreq_Hz',60,... % Notes Per Second
+    'Sounds',sounds);
+
+x = jsonencode(top,PrettyPrint=true)
