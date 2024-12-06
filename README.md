@@ -1,4 +1,4 @@
-# 525_655_final
+# Open Synth
 Final Project for FA 24 525_655 @ JHU
 
 project name: open_synth
