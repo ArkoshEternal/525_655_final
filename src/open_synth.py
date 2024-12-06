@@ -37,6 +37,7 @@ def create_wav(script_path):
         script = json.load(file)
     song_duration = script["song_duration_s"]
     sample_rate = script["sample_rate"]
+    song_len = int(song_duration * sample_rate)
     total_len = int(song_duration * sample_rate * 5)
     song = np.zeros(total_len)
 
@@ -63,7 +64,7 @@ def create_wav(script_path):
         song[start_idx:end_idx] += sound_data
 
     # truncate song total_len
-    song = song[:total_len]
+    song = song[:song_len]
     scaled_song = np.int16(song/np.max(np.abs(song)) * 32767)
     write("output.wav", sample_rate, scaled_song)
 
