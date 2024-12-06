@@ -24,6 +24,7 @@ def create_wav(script_path):
 
 # Load configuration from JSON
 def load_config(file_path):
+    print("Generating sounds from configuration file...")
     print("WARNING: This could take a very long time if the file is large.")
     # Parse JSON 
     with open(file_path, "r") as file:
